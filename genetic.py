@@ -77,10 +77,8 @@ class GeneticAlgorithm:
         game = Game()
         results1 = Parallel(n_jobs=num_cores)(delayed(game.start)(network=networks[i]) for i in range(len(networks)))
         results2 = Parallel(n_jobs=num_cores)(delayed(game.start)(network=networks[i]) for i in range(len(networks)))
-        results3 = Parallel(n_jobs=num_cores)(delayed(game.start)(network=networks[i]) for i in range(len(networks)))
-        results4 = Parallel(n_jobs=num_cores)(delayed(game.start)(network=networks[i]) for i in range(len(networks)))
         for i in range(len(results1)):
-            networks[i].score = int(np.mean([results1[i], results2[i], results3[i], results4[i]]))
+            networks[i].score = int(np.mean([results1[i], results2[i]]))
 
     def parent_selection(self, networks, crossover_number, population_size):
         """
@@ -108,9 +106,9 @@ class GeneticAlgorithm:
         :return: the winning neural net
         """
         game = Game()
-        score1 = np.mean([game.start(network = net1),game.start(network = net1),game.start(network = net1)])
-        score2 = np.mean([game.start(network = net2),game.start(network = net2),game.start(network = net2)])
-        score3 = np.mean([game.start(network = net3),game.start(network = net3),game.start(network = net3)])
+        score1 = game.start(network = net1)
+        score2 = game.start(network = net2)
+        score3 = game.start(network = net3)
         maxscore = max(score1, score2, score3)  # the best one is returned
         if maxscore == score1:
             return net1
@@ -220,8 +218,8 @@ class GeneticAlgorithm:
             res2.biases[layer][bias] = temp.biases[layer][bias]
 
         game = Game()
-        score1 = np.mean([game.start(network = net1),game.start(network = net1),game.start(network = net1)])
-        score2 = np.mean([game.start(network = net2),game.start(network = net2),game.start(network = net2)])
+        score1 = game.start(network = net1)
+        score2 = game.start(network = net2)
         if score1 > score2:  # returns best one
             return res1
         else:
@@ -242,5 +240,5 @@ class GeneticAlgorithm:
         print("Average top 6 = ", top_mean)
         print("Average last 6 = ", bottom_mean)
 
-gen = GeneticAlgorithm(population_size=2000, crossover_method='neuron', mutation_method='weight', mutation_rate=0.5, crossover_rate=0.5)
+gen = GeneticAlgorithm(population_size=100, crossover_method='neuron', mutation_method='weight', mutation_rate=0.5, crossover_rate=0.5)
 gen.start()

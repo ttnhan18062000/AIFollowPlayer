@@ -133,7 +133,8 @@ class Game():
     def __init__(self):
         self.score = 0
         self.penalty = 0
-        self.remainStep = (numCol+numRow)*5
+        self.remainStep = (numCol+numRow)*2
+        self.maxStep = (numCol+numRow)*2
         self.isCatched = 0
         self.board = np.zeros((numCol,numRow))
         for i in range(numCol):
@@ -141,6 +142,8 @@ class Game():
                 self.board[i][j] = maze[i][j]
         self.follower = self.initPlayer()
         self.runner = self.initPlayer(self.follower.pos)
+        self.followerStartPos = self.follower.pos
+        self.startDistance = astar_search((self.follower.pos[0],self.follower.pos[1]),(self.runner.pos[0],self.runner.pos[1]))
         self.isToggled = False
         self.isShowed = False
         self.isContinousPenalty = False
@@ -182,7 +185,13 @@ class Game():
         self.score = self.fitness()
         return self.score
     def update(self, network):
-        self.runner.moveRandomly(self.board)
+        #self.runner.moveRandomly(self.board)
+        currentDistance = astar_search((self.follower.pos[0],self.follower.pos[1]),(self.runner.pos[0],self.runner.pos[1]))
+        if self.maxStep - self.remainStep > 2*(self.startDistance - currentDistance):
+            print(self.remainStep)
+            self.isDead = 1
+            self.remainStep = 0
+            return
         runnerVision = self.getRunnerDirection()
         vision = self.getVision()
         tmp = np.zeros((1, vision.size))
@@ -210,11 +219,11 @@ class Game():
                     return
         else:
             self.isContinousPenalty = False
-            self.remainStep = -1
+            self.remainStep -= 1
         if self.follower.pos[0] == self.runner.pos[0] and self.follower.pos[1] == self.runner.pos[1]:
             self.isCatched = 1
     def fitness(self):
-        return ((numCol+numRow)*5 - self.remainStep) - self.penalty*5 + self.isCatched*1000 + (100 - astar_search(maze,(self.follower.pos[0],self.follower.pos[1]),(self.runner.pos[0],self.runner.pos[1])))*3 - self.isDead*5000
+        return (self.maxStep - self.remainStep) - self.penalty*5 + self.isCatched*1000 + (100 - astar_search((self.follower.pos[0],self.follower.pos[1]),(self.runner.pos[0],self.runner.pos[1])))*3 - self.isDead*1000
     def getVision(self):
         vision = []
         directions = [[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1]]
@@ -303,8 +312,10 @@ class Game():
                                      squareSize,
                                      squareSize])
         pygame.display.update()
-
+"""
 while 1:
     game = Game()
     game.isShowed = True
-    game.start()
+    print(game.start())
+"""
+
